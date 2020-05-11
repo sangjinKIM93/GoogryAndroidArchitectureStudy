@@ -17,6 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.sangjin.newproject.adapter.Movie
 import com.sangjin.newproject.adapter.MovieListAdapter
 import com.sangjin.newproject.adapter.ResponseData
+import com.sangjin.newproject.data.repository.NaverMovieRepository
+import com.sangjin.newproject.data.repository.NaverMovieRepositoryImpl
+import com.sangjin.newproject.data.source.remote.RemoteDataSourceImpl
 import kotlinx.android.synthetic.main.activity_movie_list.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -24,6 +27,9 @@ import retrofit2.Response
 
 class MovieListActivity : AppCompatActivity() {
 
+    private val naverMovieRepositoryImpl : NaverMovieRepositoryImpl by lazy{
+        NaverMovieRepositoryImpl(RemoteDataSourceImpl())
+    }
     private var movieList = ArrayList<Movie>()
     private lateinit var movieListAdapter: MovieListAdapter
 
@@ -88,26 +94,25 @@ class MovieListActivity : AppCompatActivity() {
      */
     private fun getMovieList(keyWord: String){
 
-        MovieApi.retrofitService.requestMovieList(keyword = keyWord)
-            .enqueue(object: Callback<ResponseData>{
-                override fun onResponse(call: Call<ResponseData>, response: Response<ResponseData>) {
-                    val result = response.body()?.items
+        naverMovieRepositoryImpl.getNaverMovie(keyWord, object : NaverMovieRepository.LoadMoviesCallback{
+            override fun onResponseSuccess(responseData: ResponseData) {
+                movieList.clear()
+                movieList.addAll(responseData.items)
+                movieListAdapter.addList(movieList)
+            }
 
-                    if (result.isNullOrEmpty()) {
-                        movieList.clear()
-                        movieListAdapter.addList(movieList)
-                        Toast.makeText(this@MovieListActivity, R.string.no_movie_list, Toast.LENGTH_SHORT).show()
-                    }
-                    else{
-                        movieList.clear()
-                        movieList.addAll(result)
-                        movieListAdapter.addList(movieList)
-                    }
-                }
+            override fun onResponseError(message: String) {
+                movieList.clear()
+                movieListAdapter.addList(movieList)
+                Toast.makeText(this@MovieListActivity, R.string.no_movie_list, Toast.LENGTH_SHORT).show()
+            }
 
-                override fun onFailure(call: Call<ResponseData>, t: Throwable) {
-                }
-            })
+            override fun onFailure(t: Throwable) {
+                Toast.makeText(this@MovieListActivity, t.toString(), Toast.LENGTH_SHORT).show()
+            }
+
+        })
+
     }
 
 

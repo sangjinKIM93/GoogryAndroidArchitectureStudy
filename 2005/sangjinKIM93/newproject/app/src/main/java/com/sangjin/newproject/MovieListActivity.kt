@@ -1,34 +1,35 @@
 package com.sangjin.newproject
 
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethod
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.sangjin.newproject.adapter.Movie
+import com.sangjin.newproject.data.model.Movie
 import com.sangjin.newproject.adapter.MovieListAdapter
-import com.sangjin.newproject.adapter.ResponseData
+import com.sangjin.newproject.data.model.ResponseData
 import com.sangjin.newproject.data.repository.NaverMovieRepository
 import com.sangjin.newproject.data.repository.NaverMovieRepositoryImpl
+import com.sangjin.newproject.data.source.local.LocalDataSourceImpl
+import com.sangjin.newproject.data.source.local.RoomDB
 import com.sangjin.newproject.data.source.remote.RemoteDataSourceImpl
 import kotlinx.android.synthetic.main.activity_movie_list.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class MovieListActivity : AppCompatActivity() {
 
     private val naverMovieRepositoryImpl : NaverMovieRepositoryImpl by lazy{
-        NaverMovieRepositoryImpl(RemoteDataSourceImpl())
+        NaverMovieRepositoryImpl(
+            RemoteDataSourceImpl(),
+            LocalDataSourceImpl(),
+            RoomDB.getInstance(this).movieDao
+        )
     }
     private var movieList = ArrayList<Movie>()
     private lateinit var movieListAdapter: MovieListAdapter
@@ -95,16 +96,18 @@ class MovieListActivity : AppCompatActivity() {
     private fun getMovieList(keyWord: String){
 
         naverMovieRepositoryImpl.getNaverMovie(keyWord, object : NaverMovieRepository.LoadMoviesCallback{
-            override fun onResponseSuccess(responseData: ResponseData) {
-                movieList.clear()
-                movieList.addAll(responseData.items)
-                movieListAdapter.addList(movieList)
-            }
 
-            override fun onResponseError(message: String) {
-                movieList.clear()
-                movieListAdapter.addList(movieList)
-                Toast.makeText(this@MovieListActivity, R.string.no_movie_list, Toast.LENGTH_SHORT).show()
+            override fun onSuccess(movies: List<Movie>) {
+
+                if(movies.isNullOrEmpty()){
+                    movieList.clear()
+                    movieListAdapter.addList(movieList)
+                    Toast.makeText(this@MovieListActivity, R.string.no_movie_list, Toast.LENGTH_SHORT).show()
+                } else {
+                    movieList.clear()
+                    movieList.addAll(movies)
+                    movieListAdapter.addList(movieList)
+                }
             }
 
             override fun onFailure(t: Throwable) {

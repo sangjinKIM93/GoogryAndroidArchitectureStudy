@@ -5,10 +5,10 @@ import android.os.Build
 import android.text.Html
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.AdapterView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.sangjin.newproject.R
+import com.sangjin.newproject.data.model.Movie
 import kotlinx.android.synthetic.main.item_movie.view.*
 
 class MovieListAdapter(clickListener : ((Int) -> Unit)) : RecyclerView.Adapter<MovieListViewHolder>() {

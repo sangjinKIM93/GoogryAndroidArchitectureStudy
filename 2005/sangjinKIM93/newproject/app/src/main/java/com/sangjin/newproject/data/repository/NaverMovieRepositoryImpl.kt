@@ -1,12 +1,16 @@
 package com.sangjin.newproject.data.repository
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import com.sangjin.newproject.data.model.Movie
 import com.sangjin.newproject.data.source.local.LocalDataSource
 import com.sangjin.newproject.data.source.local.MovieDao
 import com.sangjin.newproject.data.source.remote.RemoteDataSource
 import io.reactivex.Completable
+import io.reactivex.Flowable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
@@ -16,31 +20,42 @@ class NaverMovieRepositoryImpl(
     private val movieDao: MovieDao
 ) : NaverMovieRepository {
 
-    override fun getNaverMovie(query: String, callback: NaverMovieRepository.LoadMoviesCallback) {
-
-        //local
+    @SuppressLint("CheckResult")
+    override fun getNaverMovie(
+        query: String,
+        success: (List<Movie>) -> Unit,
+        fail: (Throwable) -> Unit
+    ){
+        //local cache
         localDataSource.getLocalDataSource(movieDao)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ responseData ->
-                callback.onSuccess(responseData)
+                success(responseData)
                 Log.d("Repository : ", "Local 성공")
             },
                 { t ->
-                    callback.onFailure(t)
+                    fail(t)
                 })
 
+
+
+
+    }
+
+    @SuppressLint("CheckResult")
+    override fun refreshMovieData(query: String) {
         //remote
         remoteDataSource.getNaverMovieRemote(query)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ responseData ->
+
                 saveLocalDataSource(movieDao, responseData.items)
-                callback.onSuccess(responseData.items)
-                Log.d("Repository : ", "Remote 성공")
+
             },
                 { t ->
-                    callback.onFailure(t)
+
                 })
     }
 

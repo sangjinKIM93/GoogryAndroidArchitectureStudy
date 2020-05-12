@@ -24,7 +24,7 @@ import kotlinx.android.synthetic.main.activity_movie_list.*
 
 class MovieListActivity : AppCompatActivity() {
 
-    private val naverMovieRepositoryImpl : NaverMovieRepositoryImpl by lazy{
+    private val naverMovieRepositoryImpl: NaverMovieRepositoryImpl by lazy {
         NaverMovieRepositoryImpl(
             RemoteDataSourceImpl(),
             LocalDataSourceImpl(),
@@ -42,12 +42,12 @@ class MovieListActivity : AppCompatActivity() {
         setRecyclerView()
 
         movieNameET.setOnEditorActionListener { v, actionId, event ->
-            if(actionId == EditorInfo.IME_ACTION_SEARCH){
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
 
                 onClick(v)
 
                 true
-            }else{
+            } else {
                 false
             }
         }
@@ -59,7 +59,7 @@ class MovieListActivity : AppCompatActivity() {
     /**
      * 키패드 보여주기
      */
-    private fun showKeyPad(){
+    private fun showKeyPad() {
         movieNameET.requestFocus()
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
     }
@@ -68,8 +68,9 @@ class MovieListActivity : AppCompatActivity() {
     /**
      * 키패드 숨기기
      */
-    private fun hideKeyPad(v: View){
-        val imm : InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    private fun hideKeyPad(v: View) {
+        val imm: InputMethodManager =
+            getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(v.windowToken, 0)
     }
 
@@ -81,9 +82,9 @@ class MovieListActivity : AppCompatActivity() {
 
         val keyWord = movieNameET.text.toString().trim()
 
-        if(TextUtils.isEmpty(keyWord)){
+        if (TextUtils.isEmpty(keyWord)) {
             Toast.makeText(this, R.string.no_keyword, Toast.LENGTH_LONG).show()
-        }else{
+        } else {
             getMovieList(keyWord)
             hideKeyPad(view)
         }
@@ -93,39 +94,37 @@ class MovieListActivity : AppCompatActivity() {
     /**
      * 검색 결과 받아서 출력
      */
-    private fun getMovieList(keyWord: String){
+    private fun getMovieList(keyWord: String) {
 
-        naverMovieRepositoryImpl.getNaverMovie(keyWord, object : NaverMovieRepository.LoadMoviesCallback{
-
-            override fun onSuccess(movies: List<Movie>) {
-
-                if(movies.isNullOrEmpty()){
+        naverMovieRepositoryImpl.getNaverMovie(keyWord,
+            success = { movies ->
+                if (movies.isNullOrEmpty()) {
                     movieList.clear()
                     movieListAdapter.addList(movieList)
-                    Toast.makeText(this@MovieListActivity, R.string.no_movie_list, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@MovieListActivity,
+                        R.string.no_movie_list,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
                     movieList.clear()
                     movieList.addAll(movies)
                     movieListAdapter.addList(movieList)
                 }
-            }
-
-            override fun onFailure(t: Throwable) {
+            },
+            fail = { t ->
                 Toast.makeText(this@MovieListActivity, t.toString(), Toast.LENGTH_SHORT).show()
-            }
-
-        })
-
+            })
     }
 
 
     /**
      * 리사이클러뷰 셋팅
      */
-    private fun setRecyclerView(){
+    private fun setRecyclerView() {
 
         //각 항목 클릭시 이벤트 처리
-        val onItemClickListener: ((Int) -> Unit) = {position ->
+        val onItemClickListener: ((Int) -> Unit) = { position ->
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(movieList.get(position).link))
             startActivity(intent)
         }

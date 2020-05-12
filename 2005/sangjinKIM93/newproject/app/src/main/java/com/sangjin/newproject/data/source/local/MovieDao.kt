@@ -16,4 +16,7 @@ interface MovieDao {
     @Query("SELECT * FROM movie_table")
     fun getLocalMoviesData(): Single<List<Movie>>
 
+    @Query("DELETE FROM movie_table")
+    fun deleteAll()
+
 }

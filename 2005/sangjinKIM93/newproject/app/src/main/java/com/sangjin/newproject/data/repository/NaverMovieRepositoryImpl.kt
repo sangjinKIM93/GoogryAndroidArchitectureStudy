@@ -6,6 +6,7 @@ import com.sangjin.newproject.data.model.Movie
 import com.sangjin.newproject.data.source.local.LocalDataSource
 import com.sangjin.newproject.data.source.local.MovieDao
 import com.sangjin.newproject.data.source.remote.RemoteDataSource
+import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
@@ -21,11 +22,11 @@ class NaverMovieRepositoryImpl(
         localDataSource.getLocalDataSource(movieDao)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({responseData ->
+            .subscribe({ responseData ->
                 callback.onSuccess(responseData)
                 Log.d("Repository : ", "Local 성공")
             },
-                {t ->
+                { t ->
                     callback.onFailure(t)
                 })
 
@@ -33,12 +34,12 @@ class NaverMovieRepositoryImpl(
         remoteDataSource.getNaverMovieRemote(query)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({responseData ->
+            .subscribe({ responseData ->
                 saveLocalDataSource(movieDao, responseData.items)
                 callback.onSuccess(responseData.items)
                 Log.d("Repository : ", "Remote 성공")
             },
-                {t ->
+                { t ->
                     callback.onFailure(t)
                 })
     }
